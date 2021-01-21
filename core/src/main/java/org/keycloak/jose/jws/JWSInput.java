@@ -17,11 +17,14 @@
 
 package org.keycloak.jose.jws;
 
+import org.keycloak.TokenVerifier;
 import org.keycloak.common.util.Base64Url;
 import org.keycloak.util.JsonSerialization;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -37,8 +40,10 @@ public class JWSInput {
     byte[] content;
     byte[] signature;
 
-
+    private static final Logger LOG = Logger.getLogger(TokenVerifier.class.getName());
     public JWSInput(String wire) throws JWSInputException {
+    	
+    	
         try {
             this.wireString = wire;
             String[] parts = wire.split("\\.");
@@ -101,6 +106,7 @@ public class JWSInput {
         try {
             return JsonSerialization.readValue(content, type);
         } catch (IOException e) {
+        	LOG.log(Level.INFO,"JWSInputException =>  {0}", e);
             throw new JWSInputException(e);
         }
     }

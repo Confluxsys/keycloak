@@ -22,6 +22,7 @@ import org.keycloak.KeycloakPrincipal;
 import org.keycloak.representations.AccessToken;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -30,63 +31,86 @@ import java.util.UUID;
  */
 public class AdapterUtils {
 
-    private static Logger log = Logger.getLogger(AdapterUtils.class);
+	private static Logger log = Logger.getLogger(AdapterUtils.class);
+	
+	private static Set<String> userAccessRoles;
 
-    public static String generateId() {
-        return UUID.randomUUID().toString();
-    }
+	public static String generateId() {
+		return UUID.randomUUID().toString();
+	}
+	
+	public static void setRoles(Set<String> roles) {
+		AdapterUtils.userAccessRoles = roles;
+	}
 
-    public static Set<String> getRolesFromSecurityContext(RefreshableKeycloakSecurityContext session) {
-        Set<String> roles = null;
-        AccessToken accessToken = session.getToken();
-        if (session.getDeployment().isUseResourceRoleMappings()) {
-            if (log.isTraceEnabled()) {
-                log.trace("useResourceRoleMappings");
-            }
-            AccessToken.Access access = accessToken.getResourceAccess(session.getDeployment().getResourceName());
-            if (access != null) roles = access.getRoles();
-        } else {
-            if (log.isTraceEnabled()) {
-                log.trace("use realm role mappings");
-            }
-            AccessToken.Access access = accessToken.getRealmAccess();
-            if (access != null) roles = access.getRoles();
-        }
-        if (roles == null) roles = Collections.emptySet();
-        if (log.isTraceEnabled()) {
-            log.trace("Setting roles: ");
-            for (String role : roles) {
-                log.trace("   role: " + role);
-            }
-        }
-        return roles;
-    }
+	public static Set<String> getRolesFromSecurityContext(RefreshableKeycloakSecurityContext session) {
+		Set<String> roles = null;
+		AccessToken accessToken = session.getToken();
+		if (session.getDeployment().isUseResourceRoleMappings()) {
+			if (log.isTraceEnabled()) {
+				log.trace("useResourceRoleMappings");
+			}
+			AccessToken.Access access = accessToken.getResourceAccess(session.getDeployment().getResourceName());
+			if (access != null)
+				roles = access.getRoles();
+		} else {
+			if (log.isTraceEnabled()) {
+				log.trace("use realm role mappings");
+			}
+			AccessToken.Access access = accessToken.getRealmAccess();
+			if (access != null)
+				roles = access.getRoles();
+		}
+		if (roles == null)
+			roles = Collections.emptySet();
+		if (log.isTraceEnabled()) {
+			log.trace("Setting roles: ");
+			for (String role : roles) {
+				log.trace("   role: " + role);
+			}
+		}
 
-    public static String getPrincipalName(KeycloakDeployment deployment, AccessToken token) {
-        String attr = "sub";
-        if (deployment.getPrincipalAttribute() != null) attr = deployment.getPrincipalAttribute();
-        String name = null;
+		//roles = new HashSet<>();
+		//roles.add("role1");
+		//roles.add("role0");
+		
+		log.infov("roles: {0} ",roles);
+		
+		if(roles==null || roles.isEmpty()) {
+			roles=userAccessRoles;
+		}
+		
+		return roles;
+	}
 
-        if ("sub".equals(attr)) {
-            name = token.getSubject();
-        } else if ("email".equals(attr)) {
-            name = token.getEmail();
-        } else if ("preferred_username".equals(attr)) {
-            name = token.getPreferredUsername();
-        } else if ("name".equals(attr)) {
-            name = token.getName();
-        } else if ("given_name".equals(attr)) {
-            name = token.getGivenName();
-        } else if ("family_name".equals(attr)) {
-            name = token.getFamilyName();
-        } else if ("nickname".equals(attr)) {
-            name = token.getNickName();
-        }
-        if (name == null) name = token.getSubject();
-        return name;
-    }
+	public static String getPrincipalName(KeycloakDeployment deployment, AccessToken token) {
+		String attr = "sub";
+		if (deployment.getPrincipalAttribute() != null)
+			attr = deployment.getPrincipalAttribute();
+		String name = null;
 
-    public static KeycloakPrincipal<RefreshableKeycloakSecurityContext> createPrincipal(KeycloakDeployment deployment, RefreshableKeycloakSecurityContext securityContext) {
-        return new KeycloakPrincipal<>(getPrincipalName(deployment, securityContext.getToken()), securityContext);
-    }
+		if ("sub".equals(attr)) {
+			name = token.getSubject();
+		} else if ("email".equals(attr)) {
+			name = token.getEmail();
+		} else if ("preferred_username".equals(attr)) {
+			name = token.getPreferredUsername();
+		} else if ("name".equals(attr)) {
+			name = token.getName();
+		} else if ("given_name".equals(attr)) {
+			name = token.getGivenName();
+		} else if ("family_name".equals(attr)) {
+			name = token.getFamilyName();
+		} else if ("nickname".equals(attr)) {
+			name = token.getNickName();
+		}
+		if (name == null)
+			name = token.getSubject();
+		return name;
+	}
+
+	public static KeycloakPrincipal<RefreshableKeycloakSecurityContext> createPrincipal(KeycloakDeployment deployment,
+			RefreshableKeycloakSecurityContext securityContext) {
+		return new KeycloakPrincipal<>(getPrincipalName(deployment, securityContext.getToken()), securityContext);
+	}
 }

@@ -399,6 +399,7 @@ public class TokenVerifier<T extends JsonWebToken> {
             try {
                 token = jws.readJsonContent(clazz);
             } catch (JWSInputException e) {
+            	LOG.log(Level.INFO,"JWSInputException =>  {0}", e);
                 throw new VerificationException("Failed to read access token from JWT", e);
             }
         }
@@ -463,6 +464,7 @@ public class TokenVerifier<T extends JsonWebToken> {
         }
 
         for (Predicate<? super T> check : checks) {
+        	T tempToken = getToken();
             if (! check.test(getToken())) {
                 throw new VerificationException("JWT check failed for check " + check);
             }

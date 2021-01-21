@@ -18,6 +18,8 @@
 package org.keycloak.adapters;
 
 import org.jboss.logging.Logger;
+import org.keycloak.adapters.ServerRequest.HttpFailure;
+import org.keycloak.adapters.authentication.ClientCredentialsProviderUtils;
 import org.keycloak.adapters.rotation.AdapterTokenVerifier;
 import org.keycloak.adapters.spi.AuthChallenge;
 import org.keycloak.adapters.spi.AuthOutcome;
@@ -27,8 +29,14 @@ import org.keycloak.jose.jws.JWSInput;
 import org.keycloak.jose.jws.JWSInputException;
 import org.keycloak.representations.AccessToken;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import javax.security.cert.X509Certificate;
+import org.keycloak.representations.AccessToken.Access;
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
@@ -87,9 +95,10 @@ public class BearerTokenRequestAuthenticator {
 
         return (authenticateToken(exchange, tokenString));
     }
-    
+        
     protected AuthOutcome authenticateToken(HttpFacade exchange, String tokenString) {
         log.debug("Verifying access_token");
+        log.infov("Verifying access_token tokenString=>  {0}", tokenString);
         if (log.isTraceEnabled()) {
             try {
                 JWSInput jwsInput = new JWSInput(tokenString);
@@ -102,23 +111,31 @@ public class BearerTokenRequestAuthenticator {
         try {
             token = AdapterTokenVerifier.verifyToken(tokenString, deployment);
         } catch (VerificationException e) {
+        	log.infov("Failed to verify token =>  {0}", e);
             log.debug("Failed to verify token");
             challenge = challengeResponse(exchange, OIDCAuthenticationError.Reason.INVALID_TOKEN, "invalid_token", e.getMessage());
             return AuthOutcome.FAILED;
         }
+        log.infov("token.getIssuedAt() => {0}", token.getIssuedAt());
+        log.infov("deployment.getNotBefore() =>  {0}", deployment.getNotBefore());
         if (token.getIssuedAt() < deployment.getNotBefore()) {
             log.debug("Stale token");
             challenge = challengeResponse(exchange,  OIDCAuthenticationError.Reason.STALE_TOKEN, "invalid_token", "Stale token");
+            
             return AuthOutcome.FAILED;
         }
         boolean verifyCaller = false;
+        log.infov("deployment.isUseResourceRoleMappings() =>  {0}", deployment.isUseResourceRoleMappings());
         if (deployment.isUseResourceRoleMappings()) {
             verifyCaller = token.isVerifyCaller(deployment.getResourceName());
         } else {
             verifyCaller = token.isVerifyCaller();
         }
+        
+        log.infov("verifyCaller =>  {0}", verifyCaller);
         surrogate = null;
         if (verifyCaller) {
+        	log.infov("token.getTrustedCertificates() =>  {0}", token.getTrustedCertificates());	
             if (token.getTrustedCertificates() == null || token.getTrustedCertificates().isEmpty()) {
                 log.warn("No trusted certificates in token");
                 challenge = clientCertChallenge();
@@ -133,6 +150,8 @@ public class BearerTokenRequestAuthenticator {
             } catch (Exception ignore) {
 
             }
+            
+            log.infov("chain =>  {0}", chain);
             if (chain == null || chain.length == 0) {
                 log.warn("No certificates provided by undertow to verify the caller");
                 challenge = clientCertChallenge();

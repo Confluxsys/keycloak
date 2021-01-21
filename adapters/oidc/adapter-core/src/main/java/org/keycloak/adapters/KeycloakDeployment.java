@@ -36,6 +36,7 @@ import org.keycloak.util.JsonSerialization;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -171,12 +172,15 @@ public class KeycloakDeployment {
             synchronized (this) {
                 KeycloakUriBuilder authUrlBuilder = KeycloakUriBuilder.fromUri(authServerBaseUrl);
 
+                //String relativeDiscoveryURL="/{realm-name}/.well-known/openid-configuration";
+                
                 String discoveryUrl = authUrlBuilder.clone().path(ServiceUrlConstants.DISCOVERY_URL).build(getRealm()).toString();
                 try {
                     log.debugv("Resolving URLs from {0}", discoveryUrl);
 
-                    OIDCConfigurationRepresentation config = getOidcConfiguration(discoveryUrl);
+                   OIDCConfigurationRepresentation config = getOidcConfiguration(discoveryUrl);
 
+                   //http://localhost:8081/openam/oauth2/realms/test/.well-known/openid-configuration
                     authUrl = KeycloakUriBuilder.fromUri(config.getAuthorizationEndpoint());
                     realmInfoUrl = config.getIssuer();
 
@@ -201,28 +205,39 @@ public class KeycloakDeployment {
         }
 
         String login = authUrlBuilder.clone().path(ServiceUrlConstants.AUTH_PATH).build(getRealm()).toString();
+        log.infov("login =>  {0}", login);
         authUrl = KeycloakUriBuilder.fromUri(login);
+        
+        log.infov("authUrl =>  {0}", authUrl);
         realmInfoUrl = authUrlBuilder.clone().path(ServiceUrlConstants.REALM_INFO_PATH).build(getRealm()).toString();
 
         tokenUrl = authUrlBuilder.clone().path(ServiceUrlConstants.TOKEN_PATH).build(getRealm()).toString();
         logoutUrl = KeycloakUriBuilder.fromUri(authUrlBuilder.clone().path(ServiceUrlConstants.TOKEN_SERVICE_LOGOUT_PATH).build(getRealm()).toString());
         accountUrl = authUrlBuilder.clone().path(ServiceUrlConstants.ACCOUNT_SERVICE_PATH).build(getRealm()).toString();
+        
+        log.infov("accountUrl =>  {0}", accountUrl);
         registerNodeUrl = authUrlBuilder.clone().path(ServiceUrlConstants.CLIENTS_MANAGEMENT_REGISTER_NODE_PATH).build(getRealm()).toString();
         unregisterNodeUrl = authUrlBuilder.clone().path(ServiceUrlConstants.CLIENTS_MANAGEMENT_UNREGISTER_NODE_PATH).build(getRealm()).toString();
         jwksUrl = authUrlBuilder.clone().path(ServiceUrlConstants.JWKS_URL).build(getRealm()).toString();
     }
 
     protected OIDCConfigurationRepresentation getOidcConfiguration(String discoveryUrl) throws Exception {
+    	
         HttpGet request = new HttpGet(discoveryUrl);
         request.addHeader("accept", "application/json");
 
         HttpResponse response = getClient().execute(request);
+        log.infov("response =>  {0}", response);
+        log.infov("response.getEntity() =>  {0}", response.getEntity());
+        log.infov("response.getStatusLine() =>  {0}", response.getStatusLine());
+        log.infov("response.getEntity().getContent() =>  {0}", response.getEntity().getContent());
         if (response.getStatusLine().getStatusCode() != 200) {
             throw new Exception(response.getStatusLine().getReasonPhrase());
         }
 
         return JsonSerialization.readValue(response.getEntity().getContent(), OIDCConfigurationRepresentation.class);
     }
+    
 
     public RelativeUrlsUsed getRelativeUrls() {
         return relativeUrls;

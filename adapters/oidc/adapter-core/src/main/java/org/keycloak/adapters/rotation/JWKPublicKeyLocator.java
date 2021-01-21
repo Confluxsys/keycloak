@@ -104,6 +104,7 @@ public class JWKPublicKeyLocator implements PublicKeyLocator {
                 log.debug("Realm public keys successfully retrieved for client " +  deployment.getResourceName() + ". New kids: " + publicKeys.keySet().toString());
             }
 
+            log.infov("Realm public keys successfully retrieved for client " +  deployment.getResourceName() + ". New kids: " + publicKeys.keySet().toString());
             // Update current keys
             currentKeys.clear();
             currentKeys.putAll(publicKeys);

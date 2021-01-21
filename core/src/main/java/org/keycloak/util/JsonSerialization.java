@@ -28,6 +28,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Utility class to handle simple JSON serializable for Keycloak.
@@ -46,6 +48,18 @@ public class JsonSerialization {
         prettyMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         prettyMapper.enable(SerializationFeature.INDENT_OUTPUT);
         prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
+    
+    public static Set<String> getRoles(String userInfoJson) throws IOException{    	
+    	Set<String> roles = new HashSet<>();
+    	JsonNode jsonNode = mapper.readTree(userInfoJson);
+    	JsonNode arrNode=jsonNode.get("roles");
+    	for (int i = 0; i < arrNode.size(); i++) {
+			JsonNode node = arrNode.get(i);
+			roles.add(node.asText());
+		}
+    	
+    	return roles;
     }
 
     public static void writeValueToStream(OutputStream os, Object obj) throws IOException {

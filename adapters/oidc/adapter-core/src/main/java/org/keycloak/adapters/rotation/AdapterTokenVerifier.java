@@ -47,11 +47,16 @@ public class AdapterTokenVerifier {
         TokenVerifier<AccessToken> tokenVerifier = createVerifier(tokenString, deployment, true, AccessToken.class);
 
         // Verify audience of bearer-token
+        log.infov("deployment.getResourceName() =>  {0}", deployment.getResourceName());
+        log.infov("deployment.isVerifyTokenAudience() =>  {0}", deployment.isVerifyTokenAudience());
         if (deployment.isVerifyTokenAudience()) {
-            tokenVerifier.audience(deployment.getResourceName());
+            tokenVerifier.audience(deployment.getResourceName()); //client id
         }
 
-        return tokenVerifier.verify().getToken();
+        
+        AccessToken token = tokenVerifier.verify().getToken();
+        log.infov("token =>  {0}", token);   
+        return token;
     }
 
 
@@ -101,16 +106,19 @@ public class AdapterTokenVerifier {
     public static <T extends JsonWebToken> TokenVerifier<T> createVerifier(String tokenString, KeycloakDeployment deployment, boolean withDefaultChecks, Class<T> tokenClass) throws VerificationException {
         TokenVerifier<T> tokenVerifier = TokenVerifier.create(tokenString, tokenClass);
 
+        log.infov("deployment.getRealmInfoUrl() =>  {0}", deployment.getRealmInfoUrl());
         if (withDefaultChecks) {
             tokenVerifier
                     .withDefaultChecks()
                     .realmUrl(deployment.getRealmInfoUrl());
         }
 
+        log.infov("kid =>  {0}", deployment.getRealmInfoUrl());
         String kid = tokenVerifier.getHeader().getKeyId();
+        log.infov("kid =>  {0}", kid);
         PublicKey publicKey = getPublicKey(kid, deployment);
         tokenVerifier.publicKey(publicKey);
-
+        log.infov("tokenVerifier =>  {0}", tokenVerifier);
         return tokenVerifier;
     }
 
@@ -124,6 +132,7 @@ public class AdapterTokenVerifier {
             throw new VerificationException("Didn't find publicKey for specified kid");
         }
 
+        log.infov("publicKey =>  {0}", publicKey);
         return publicKey;
     }
 

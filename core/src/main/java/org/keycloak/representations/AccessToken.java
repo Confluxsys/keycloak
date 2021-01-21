@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -133,7 +134,7 @@ public class AccessToken extends IDToken {
     protected CertConf certConf;
 
     @JsonProperty("scope")
-    protected String scope;
+    protected List<String> scope;
 
     @JsonIgnore
     public Map<String, Access> getResourceAccess() {
@@ -270,11 +271,11 @@ public class AccessToken extends IDToken {
         this.certConf = certConf;
     }
 
-    public String getScope() {
+    public List<String> getScope() {
         return scope;
     }
 
-    public void setScope(String scope) {
+    public void setScope(List<String> scope) {
         this.scope = scope;
     }
 

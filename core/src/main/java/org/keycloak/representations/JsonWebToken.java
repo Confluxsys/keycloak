@@ -54,7 +54,7 @@ public class JsonWebToken implements Serializable, Token {
     protected String[] audience;
     @JsonProperty("sub")
     protected String subject;
-    @JsonProperty("typ")
+    @JsonProperty("token_type")
     protected String type;
     @JsonProperty("azp")
     public String issuedFor;
