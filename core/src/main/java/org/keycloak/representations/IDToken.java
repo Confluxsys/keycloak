@@ -19,6 +19,13 @@ package org.keycloak.representations;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.keycloak.TokenCategory;
 
 /**
@@ -59,6 +66,13 @@ public class IDToken extends JsonWebToken {
 
     // NOTE!!!  WE used to use @JsonUnwrapped on a UserClaimSet object.  This screws up otherClaims and the won't work
     // anymore.  So don't have any @JsonUnwrapped!
+    // added by Bharat
+    @JsonProperty("aud")
+    protected String idTokenissuedFor;
+    
+    @JsonProperty("roles")
+    protected Object roles;
+    
     @JsonProperty(NONCE)
     protected String nonce;
 
@@ -140,7 +154,23 @@ public class IDToken extends JsonWebToken {
     // http://openid.net/specs/openid-financial-api-part-2.html#authorization-server
     @JsonProperty(S_HASH)
     protected String stateHash; 
-
+    
+    /**
+     * OAuth client the token was issued for. Added by Bharat
+     *
+     * @return
+     */
+    @Override
+    public String getIssuedFor() {
+        return idTokenissuedFor;
+    }
+    
+    public Set<String> getRoles() {
+    	if (roles instanceof String)
+    		return Collections.singleton(roles.toString());
+        return new HashSet<>( (ArrayList<String>) roles);
+    }
+    
     public String getNonce() {
         return nonce;
     }

@@ -328,7 +328,9 @@ public class OAuthRequestAuthenticator {
 
         AccessTokenResponse tokenResponse = null;
         strippedOauthParametersRequestUri = rewrittenRedirectUri(stripOauthParametersFromRedirect());
-    
+        
+        log.debug("strippedOauthParametersRequestUri: " + strippedOauthParametersRequestUri);
+        
         try {
             // For COOKIE store we don't have httpSessionId and single sign-out won't be available
             String httpSessionId = deployment.getTokenStore() == TokenStore.SESSION ? reqAuthenticator.changeHttpSessionId(true) : null;
@@ -349,12 +351,16 @@ public class OAuthRequestAuthenticator {
         tokenString = tokenResponse.getToken();
         refreshToken = tokenResponse.getRefreshToken();
         idTokenString = tokenResponse.getIdToken();
+        
+        log.debug("tokenString: " + tokenString);
+        log.debug("refreshToken: " + refreshToken);
+        log.debug("idTokenString: " + idTokenString);
 
         log.debug("Verifying tokens");
         if (log.isTraceEnabled()) {
             logToken("\taccess_token", tokenString);
             logToken("\tid_token", idTokenString);
-            logToken("\trefresh_token", refreshToken);
+            //logToken("\trefresh_token", refreshToken);
         }
 
         try {

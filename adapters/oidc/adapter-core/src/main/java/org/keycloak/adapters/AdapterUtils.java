@@ -22,6 +22,7 @@ import org.keycloak.KeycloakPrincipal;
 import org.keycloak.representations.AccessToken;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -49,17 +50,28 @@ public class AdapterUtils {
             if (log.isTraceEnabled()) {
                 log.trace("use realm role mappings");
             }
-            AccessToken.Access access = accessToken.getRealmAccess();
-            if (access != null) roles = access.getRoles();
+            //AccessToken.Access access = accessToken.getRealmAccess();
+            //if (access != null) roles = access.getRoles();
+            roles = accessToken.getRoles();
         }
         if (roles == null) roles = Collections.emptySet();
+        Set<String> editedRoles = new HashSet<>();
+        for (String role : roles) {
+        	if (role.endsWith("@directory")) {
+        		role = role.substring(0, role.length() - 10);
+        		editedRoles.add(role);
+          	}else
+          		editedRoles.add(role);
+        }
+        
         if (log.isTraceEnabled()) {
             log.trace("Setting roles: ");
-            for (String role : roles) {
+            for (String role : editedRoles) {
                 log.trace("   role: " + role);
             }
         }
-        return roles;
+        log.debug("Roles: " + editedRoles);
+        return editedRoles;
     }
 
     public static String getPrincipalName(KeycloakDeployment deployment, AccessToken token) {

@@ -68,8 +68,10 @@ public class AdapterTokenVerifier {
         // Adapters currently do most of the checks including signature etc on the access token
         TokenVerifier<AccessToken> tokenVerifier = createVerifier(accessTokenString, deployment, true, AccessToken.class);
         AccessToken accessToken = tokenVerifier.verify().getToken();
+        
+        log.debug("accessToken: " + accessToken);
 
-        if (idTokenString != null) {
+        if (idTokenString == null) {
             // Don't verify signature again on IDToken
             IDToken idToken = TokenVerifier.create(idTokenString, IDToken.class).getToken();
             TokenVerifier<IDToken> idTokenVerifier = TokenVerifier.createWithoutSignature(idToken);
@@ -108,7 +110,13 @@ public class AdapterTokenVerifier {
         }
 
         String kid = tokenVerifier.getHeader().getKeyId();
+        
+        log.debug("kid: " + kid);
+        
         PublicKey publicKey = getPublicKey(kid, deployment);
+        
+        log.debug("publicKey: " + publicKey.toString());
+        
         tokenVerifier.publicKey(publicKey);
 
         return tokenVerifier;

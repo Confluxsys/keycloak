@@ -48,7 +48,7 @@ public class JsonWebToken implements Serializable, Token {
 
     @JsonProperty("iss")
     protected String issuer;
-    @JsonProperty("aud")
+    @JsonProperty("audience")
     @JsonSerialize(using = StringOrArraySerializer.class)
     @JsonDeserialize(using = StringOrArrayDeserializer.class)
     protected String[] audience;
@@ -56,7 +56,7 @@ public class JsonWebToken implements Serializable, Token {
     protected String subject;
     @JsonProperty("typ")
     protected String type;
-    @JsonProperty("azp")
+    @JsonProperty("client_id")
     public String issuedFor;
     protected Map<String, Object> otherClaims = new HashMap<>();
 

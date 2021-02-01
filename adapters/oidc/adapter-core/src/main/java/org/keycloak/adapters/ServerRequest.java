@@ -102,7 +102,9 @@ public class ServerRequest {
             formparams.add(new BasicNameValuePair(AdapterConstants.CLIENT_SESSION_STATE, sessionId));
             formparams.add(new BasicNameValuePair(AdapterConstants.CLIENT_SESSION_HOST, HostUtils.getHostName()));
         }
-
+        
+        logger.debug("deployment.getTokenUrl(): "+ deployment.getTokenUrl());
+        
         HttpPost post = new HttpPost(deployment.getTokenUrl());
         ClientCredentialsProviderUtils.setClientCredentials(deployment, post, formparams);
 
@@ -111,6 +113,9 @@ public class ServerRequest {
         HttpResponse response = deployment.getClient().execute(post);
         int status = response.getStatusLine().getStatusCode();
         HttpEntity entity = response.getEntity();
+        
+        logger.debug("entity: " + entity);
+        
         if (status != 200) {
             error(status, entity);
         }
